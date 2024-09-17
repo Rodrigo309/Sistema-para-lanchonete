@@ -1,0 +1,3 @@
+Hambúrguer;25.00
+Pão de queijo;10.00
+Acarajé;15.00
