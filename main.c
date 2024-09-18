@@ -1,9 +1,16 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
+#include <stdio.h>  // printf, scanf, fscanf, fprintf, fopen, etc.
+#include <unistd.h> // sleep
+#include <stdlib.h> // system
 
 //Controle de Vendas
 //o programa só vai sair das opcões selecionadas depois de eu clicar em alguma tecla
+
+typedef struct{
+    char nome[50];
+    int quantidade;
+    double receitaTotal;
+} lancheVendido;
+
 
 void gravarLanche(char lanche[][50], double preco[], int totalLanches){
     FILE *arquivo = fopen("Cardapio.txt","w");
@@ -62,11 +69,12 @@ void cadastrarLanche(char lanche[][50], double preco[], int *totalLanches){
 void lancarVenda(char lanche[][50], double preco[], int totalLanches){
     int com_lanc, com_quant;
     double total = 0.0;
+    FILE *arquivoVendas;
+
     listarCardapio(lanche, preco, totalLanches);
 
     printf("Informe o número do lanche: ");
     scanf("%d", &com_lanc);
-
     com_lanc--;
 
       if (com_lanc >= 0 && com_lanc < totalLanches) {
@@ -75,11 +83,67 @@ void lancarVenda(char lanche[][50], double preco[], int totalLanches){
         scanf("%d", &com_quant);
         total = com_quant * preco[com_lanc];
         printf("Total a pagar = %.2lf Reais\n", total);
+
+        arquivoVendas = fopen("Vendas.txt","a");
+        if(arquivoVendas == NULL){
+            printf("Erro ao abrir arquivo de vendas!\n");
+            return;
+        }
+
+        fprintf(arquivoVendas,"Lanche: %s | Quantidade: %d | Preço Unitário: %.2lf | Total: %.2f\n",
+        lanche[com_lanc], com_quant, preco[com_lanc], total);
+
+        fclose(arquivoVendas);
+
     } else {
         printf("Lanche inválido!\n");
     }
 
     sleep(2);
+}
+
+void analisarVendas(){
+    FILE *arquivoVendas = fopen("Vendas.txt","r");
+    if(arquivoVendas == NULL){
+        printf("Erro ao abrir arquivo de vendas!\n");
+        return;
+    }
+
+    lancheVendido lanches[50];
+    int totalLanches = 0;
+
+    char nome[50];
+    int quantidade;
+    double preco_unitario, receita;
+
+    while(fscanf(arquivoVendas, "Lanche: %49[^|] | Quantidade: %d | Preço Unitário: %lf | Total: %lf\n", 
+    nome, &quantidade, &preco_unitario, &receita) == 4){
+        int encontrado = 0;
+        for(int i = 0; i < totalLanches; i++){
+            if(strcmp(lanches[i].nome, nome) == 0){
+                lanches[i].quantidade += quantidade;
+                lanches[i].receitaTotal += receita;
+                encontrado = 1;
+                break;
+            }
+        }
+
+        if(!encontrado && totalLanches < 50){
+            strcpy(lanches[totalLanches].nome, nome);
+            lanches[totalLanches].quantidade = quantidade;
+            lanches[totalLanches].receitaTotal = receita;
+            totalLanches++;
+        }
+    }
+
+    fclose(arquivoVendas);
+
+
+    printf("====Análise de Vendas ====\n");
+    for(int i= 0; i <totalLanches; i++){
+        printf("Produto: %s - Total Vendido: %d - Receita Total: %.2lf Reais\n",
+        lanches[i].nome, lanches[i].quantidade, lanches[i].receitaTotal);
+    }
 }
 
 int mostrarMenu(){
@@ -88,6 +152,7 @@ int mostrarMenu(){
     printf("1 - Cadastrar Lanche\n");
     printf("2 - Lançar venda\n");
     printf("3 - Cardápio\n");
+    printf("4 - Análise de Vendas\n");
     printf("0 - Sair\n");
     printf("Opção: ");
     scanf("%d", &opc);
@@ -121,6 +186,11 @@ int main(){
 
             case 3:
                 listarCardapio(lanche, preco, l);
+                sleep(5);
+                break;
+
+            case 4:
+                analisarVendas();
                 sleep(5);
                 break;
 

@@ -1,0 +1,2 @@
+Lanche: Hambúrguer | Quantidade: 3 | Preço Unitário: 25.00 | Total: 75.00
+Lanche: Hambúrguer | Quantidade: 2 | Preço Unitário: 25.00 | Total: 50.00
